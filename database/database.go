@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/suhail34/goGraphql-Todo/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,13 +14,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var connectionString string = "mongodb+srv://skna:admin@notes.hpcfkkd.mongodb.net/?retryWrites=true&w=majority"
-
 type DB struct {
 	client *mongo.Client
 }
 
 func Connect() *DB {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	var connectionString string = os.Getenv("MONGO_URI")
 	clientOptions := options.Client().ApplyURI(connectionString)
 
 	ctx := context.Background()
