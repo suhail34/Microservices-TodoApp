@@ -18,8 +18,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, id string, username s
 }
 
 // CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, userID string, text string) (*model.Todo, error) {
-	return db.CreateTodo(userID, text)
+func (r *mutationResolver) CreateTodo(ctx context.Context, id string, userID string, text string) (*model.Todo, error) {
+	return db.CreateTodo(id, userID, text)
 }
 
 // UpdateTodo is the resolver for the updateTodo field.
@@ -34,7 +34,7 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*string, 
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: GetUser - getUser"))
+	return db.GetUser(id)
 }
 
 // GetTodo is the resolver for the getTodo field.
@@ -44,7 +44,7 @@ func (r *queryResolver) GetTodo(ctx context.Context, id string) (*model.Todo, er
 
 // GetUserTodos is the resolver for the getUserTodos field.
 func (r *queryResolver) GetUserTodos(ctx context.Context, userID string) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: GetUserTodos - getUserTodos"))
+	return db.GetUserTodos(userID)
 }
 
 // Mutation returns MutationResolver implementation.

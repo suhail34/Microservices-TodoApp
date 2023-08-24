@@ -3,15 +3,14 @@
 package model
 
 type Todo struct {
-	ID        string `json:"_id"`
-	Text      string `json:"text"`
-	Completed bool   `json:"completed"`
-	UserID    string `json:"userId"`
+	ID        string `bson:"_id"`
+	Text      string `bson:"text"`
+	Completed bool   `bson:"completed"`
+	UserID    string `bson:"userId"`
 }
 
 type User struct {
-	ID       string  `json:"_id"`
-	Username string  `json:"username"`
-	Email    string  `json:"email"`
-	Todos    []*Todo `json:"todos"`
+	ID       string `bson:"_id"`
+	Username string `bson:"username"`
+	Email    string `bson:"email"`
 }

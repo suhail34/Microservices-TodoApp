@@ -6,7 +6,6 @@ type User {
   _id: ID!
   username: String!
   email: String!
-  todos: [Todo!]!
 }
 
 type Todo {
@@ -24,7 +23,7 @@ type Query {
 
 type Mutation {
   createUser(_id: String!, username: String!, email: String!): User
-  createTodo(userId: ID!, text: String!): Todo
+  createTodo(_id: String!, userId: ID!, text: String!): Todo
   updateTodo(_id: ID!, text: String, completed: Boolean): Todo
   deleteTodo(_id: ID!): ID
 }
