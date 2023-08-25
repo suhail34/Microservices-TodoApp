@@ -46,10 +46,10 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateTodo func(childComplexity int, id string, userID string, text string) int
-		CreateUser func(childComplexity int, id string, username string, email string) int
+		CreateTodo func(childComplexity int, id string, userID string, input *model.CreateTodoInput) int
+		CreateUser func(childComplexity int, id string, input *model.CreateUserInput) int
 		DeleteTodo func(childComplexity int, id string) int
-		UpdateTodo func(childComplexity int, id string, text *string, completed *bool) int
+		UpdateTodo func(childComplexity int, id string, userID string, input *model.UpdateTodoInput) int
 	}
 
 	Query struct {
@@ -73,10 +73,10 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateUser(ctx context.Context, id string, username string, email string) (*model.User, error)
-	CreateTodo(ctx context.Context, id string, userID string, text string) (*model.Todo, error)
-	UpdateTodo(ctx context.Context, id string, text *string, completed *bool) (*model.Todo, error)
-	DeleteTodo(ctx context.Context, id string) (*string, error)
+	CreateUser(ctx context.Context, id string, input *model.CreateUserInput) (*model.User, error)
+	CreateTodo(ctx context.Context, id string, userID string, input *model.CreateTodoInput) (*model.Todo, error)
+	UpdateTodo(ctx context.Context, id string, userID string, input *model.UpdateTodoInput) (*model.Todo, error)
+	DeleteTodo(ctx context.Context, id string) (*model.Todo, error)
 }
 type QueryResolver interface {
 	GetUser(ctx context.Context, id string) (*model.User, error)
@@ -109,7 +109,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["_id"].(string), args["userId"].(string), args["text"].(string)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["_id"].(string), args["userId"].(string), args["input"].(*model.CreateTodoInput)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -121,7 +121,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateUser(childComplexity, args["_id"].(string), args["username"].(string), args["email"].(string)), true
+		return e.complexity.Mutation.CreateUser(childComplexity, args["_id"].(string), args["input"].(*model.CreateUserInput)), true
 
 	case "Mutation.deleteTodo":
 		if e.complexity.Mutation.DeleteTodo == nil {
@@ -145,7 +145,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTodo(childComplexity, args["_id"].(string), args["text"].(*string), args["completed"].(*bool)), true
+		return e.complexity.Mutation.UpdateTodo(childComplexity, args["_id"].(string), args["userId"].(string), args["input"].(*model.UpdateTodoInput)), true
 
 	case "Query.getTodo":
 		if e.complexity.Query.GetTodo == nil {
@@ -239,7 +239,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputcreateTodoInput,
+		ec.unmarshalInputcreateUserInput,
+		ec.unmarshalInputupdateTodoInput,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -361,7 +365,7 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	var arg0 string
 	if tmp, ok := rawArgs["_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -376,15 +380,15 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 		}
 	}
 	args["userId"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["text"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg2 *model.CreateTodoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg2, err = ec.unmarshalOcreateTodoInput2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐCreateTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text"] = arg2
+	args["input"] = arg2
 	return args, nil
 }
 
@@ -394,30 +398,21 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 	var arg0 string
 	if tmp, ok := rawArgs["_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["username"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg1 *model.CreateUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalOcreateUserInput2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐCreateUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["username"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["email"] = arg2
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -448,24 +443,24 @@ func (ec *executionContext) field_Mutation_updateTodo_args(ctx context.Context, 
 		}
 	}
 	args["_id"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["text"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["completed"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("completed"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	args["userId"] = arg1
+	var arg2 *model.UpdateTodoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg2, err = ec.unmarshalOupdateTodoInput2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐUpdateTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["completed"] = arg2
+	args["input"] = arg2
 	return args, nil
 }
 
@@ -581,7 +576,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["_id"].(string), fc.Args["username"].(string), fc.Args["email"].(string))
+		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["_id"].(string), fc.Args["input"].(*model.CreateUserInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -641,7 +636,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["_id"].(string), fc.Args["userId"].(string), fc.Args["text"].(string))
+		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["_id"].(string), fc.Args["userId"].(string), fc.Args["input"].(*model.CreateTodoInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -703,7 +698,7 @@ func (ec *executionContext) _Mutation_updateTodo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTodo(rctx, fc.Args["_id"].(string), fc.Args["text"].(*string), fc.Args["completed"].(*bool))
+		return ec.resolvers.Mutation().UpdateTodo(rctx, fc.Args["_id"].(string), fc.Args["userId"].(string), fc.Args["input"].(*model.UpdateTodoInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -774,9 +769,9 @@ func (ec *executionContext) _Mutation_deleteTodo(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Todo)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOTodo2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -786,7 +781,17 @@ func (ec *executionContext) fieldContext_Mutation_deleteTodo(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			switch field.Name {
+			case "_id":
+				return ec.fieldContext_Todo__id(ctx, field)
+			case "text":
+				return ec.fieldContext_Todo_text(ctx, field)
+			case "completed":
+				return ec.fieldContext_Todo_completed(ctx, field)
+			case "userId":
+				return ec.fieldContext_Todo_userId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
 	}
 	defer func() {
@@ -3200,6 +3205,111 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputcreateTodoInput(ctx context.Context, obj interface{}) (model.CreateTodoInput, error) {
+	var it model.CreateTodoInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"text"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "text":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Text = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputcreateUserInput(ctx context.Context, obj interface{}) (model.CreateUserInput, error) {
+	var it model.CreateUserInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"username", "email"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputupdateTodoInput(ctx context.Context, obj interface{}) (model.UpdateTodoInput, error) {
+	var it model.UpdateTodoInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"text", "completed"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "text":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Text = data
+		case "completed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("completed"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Completed = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4183,22 +4293,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalID(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalID(*v)
-	return res
-}
-
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -4429,6 +4523,30 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 		return graphql.Null
 	}
 	return ec.___Type(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOcreateTodoInput2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐCreateTodoInput(ctx context.Context, v interface{}) (*model.CreateTodoInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputcreateTodoInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOcreateUserInput2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐCreateUserInput(ctx context.Context, v interface{}) (*model.CreateUserInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputcreateUserInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOupdateTodoInput2ᚖgithubᚗcomᚋsuhail34ᚋgoGraphqlᚑTodoᚋgraphᚋmodelᚐUpdateTodoInput(ctx context.Context, v interface{}) (*model.UpdateTodoInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputupdateTodoInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 // endregion ***************************** type.gotpl *****************************

@@ -6,30 +6,29 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/suhail34/goGraphql-Todo/database"
 	"github.com/suhail34/goGraphql-Todo/graph/model"
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, id string, username string, email string) (*model.User, error) {
-	return db.CreateUser(id, username, email)
+func (r *mutationResolver) CreateUser(ctx context.Context, id string, input *model.CreateUserInput) (*model.User, error) {
+	return db.CreateUser(id, input)
 }
 
 // CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, id string, userID string, text string) (*model.Todo, error) {
-	return db.CreateTodo(id, userID, text)
+func (r *mutationResolver) CreateTodo(ctx context.Context, id string, userID string, input *model.CreateTodoInput) (*model.Todo, error) {
+	return db.CreateTodo(id, userID, input)
 }
 
 // UpdateTodo is the resolver for the updateTodo field.
-func (r *mutationResolver) UpdateTodo(ctx context.Context, id string, text *string, completed *bool) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: UpdateTodo - updateTodo"))
+func (r *mutationResolver) UpdateTodo(ctx context.Context, id string, userID string, input *model.UpdateTodoInput) (*model.Todo, error) {
+	return db.UpdateTodo(id, userID, input)
 }
 
 // DeleteTodo is the resolver for the deleteTodo field.
-func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*string, error) {
-	panic(fmt.Errorf("not implemented: DeleteTodo - deleteTodo"))
+func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*model.Todo, error) {
+	return db.DeleteTodo(id)
 }
 
 // GetUser is the resolver for the getUser field.
@@ -39,7 +38,7 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, er
 
 // GetTodo is the resolver for the getTodo field.
 func (r *queryResolver) GetTodo(ctx context.Context, id string) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: GetTodo - getTodo"))
+	return db.GetTodo(id)
 }
 
 // GetUserTodos is the resolver for the getUserTodos field.

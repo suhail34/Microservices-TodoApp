@@ -42,12 +42,12 @@ func Connect() *DB {
 	}
 }
 
-func (db *DB) CreateUser(id, username, email string) (*model.User, error) {
+func (db *DB) CreateUser(id string, input *model.CreateUserInput) (*model.User, error) {
 	collection := db.client.Database("MyTodoService").Collection("user")
 	var data = &model.User{
 		ID:       id,
-		Username: username,
-		Email:    email,
+		Username: input.Username,
+		Email:    input.Email,
 	}
 	_, err := collection.InsertOne(context.Background(), data)
 	if err != nil {
@@ -58,11 +58,11 @@ func (db *DB) CreateUser(id, username, email string) (*model.User, error) {
 	return data, nil
 }
 
-func (db *DB) CreateTodo(id, userId, text string) (*model.Todo, error) {
+func (db *DB) CreateTodo(id, userId string, input *model.CreateTodoInput) (*model.Todo, error) {
 	collection := db.client.Database("MyTodoService").Collection("todos")
 	data := &model.Todo{
 		ID:        id,
-		Text:      text,
+		Text:      input.Text,
 		Completed: false,
 		UserID:    userId,
 	}
@@ -102,4 +102,54 @@ func (db *DB) GetUserTodos(userId string) ([]*model.Todo, error) {
 		todos = append(todos, todo)
 	}
 	return todos, nil
+}
+
+func (db *DB) GetTodo(id string) (*model.Todo, error) {
+	var todo *model.Todo
+	collection := db.client.Database("MyTodoService").Collection("todos")
+	_ = collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&todo)
+	if todo == nil {
+		log.Fatal("No todo found with specified ID")
+	}
+	return todo, nil
+}
+
+func (db *DB) UpdateTodo(id, userId string, input *model.UpdateTodoInput) (*model.Todo, error) {
+	var todo *model.Todo
+	collection := db.client.Database("MyTodoService").Collection("todos")
+
+	updateFields := bson.M{}
+	if input.Text != nil {
+		updateFields["text"] = input.Text
+	}
+	if input.Completed != nil {
+		updateFields["completed"] = input.Completed
+	}
+	update := bson.M{
+		"$set": updateFields,
+	}
+	filter := bson.M{"_id": id, "userId": userId}
+	_, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Fatal("Failed updating todo", err)
+	}
+	err = collection.FindOne(context.Background(), filter).Decode(&todo)
+	if err != nil {
+		log.Fatal("Error finding todo for user", err)
+	}
+	return todo, nil
+}
+
+func (db *DB) DeleteTodo(id string) (*model.Todo, error) {
+	var todo *model.Todo
+	collection := db.client.Database("MyTodoService").Collection("todos")
+	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&todo)
+	if err != nil {
+		return nil, fmt.Errorf("No Todo Item present with that id %v", err)
+	}
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": id})
+	if err != nil {
+		return nil, fmt.Errorf("Delete operation failed %v", err)
+	}
+	return todo, nil
 }

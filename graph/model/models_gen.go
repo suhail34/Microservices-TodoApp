@@ -14,3 +14,17 @@ type User struct {
 	Username string `bson:"username"`
 	Email    string `bson:"email"`
 }
+
+type CreateTodoInput struct {
+	Text string `bson:"text"`
+}
+
+type CreateUserInput struct {
+	Username string `bson:"username"`
+	Email    string `bson:"email"`
+}
+
+type UpdateTodoInput struct {
+	Text      *string `bson:"text,omitempty"`
+	Completed *bool   `bson:"completed,omitempty"`
+}

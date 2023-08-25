@@ -22,13 +22,27 @@ type Query {
 }
 
 type Mutation {
-  createUser(_id: String!, username: String!, email: String!): User
-  createTodo(_id: String!, userId: ID!, text: String!): Todo
-  updateTodo(_id: ID!, text: String, completed: Boolean): Todo
-  deleteTodo(_id: ID!): ID
+  createUser(_id: ID!, input: createUserInput): User
+  createTodo(_id: ID!, userId: ID!, input: createTodoInput): Todo
+  updateTodo(_id: ID!, userId: ID!, input: updateTodoInput): Todo
+  deleteTodo(_id: ID!): Todo
 }
 
 schema {
   query: Query
   mutation: Mutation
+}
+
+input updateTodoInput {
+  text: String
+  completed: Boolean
+}
+
+input createUserInput {
+  username: String!
+  email: String!
+}
+
+input createTodoInput {
+  text: String!
 }
