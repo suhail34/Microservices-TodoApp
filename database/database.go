@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/suhail34/goGraphql-Todo/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -42,10 +43,9 @@ func Connect() *DB {
 	}
 }
 
-func (db *DB) CreateUser(id string, input *model.CreateUserInput) (*model.User, error) {
+func (db *DB) CreateUser(input *model.CreateUserInput) (*model.User, error) {
 	collection := db.client.Database("MyTodoService").Collection("user")
 	var data = &model.User{
-		ID:       id,
 		Username: input.Username,
 		Email:    input.Email,
 	}
@@ -58,10 +58,9 @@ func (db *DB) CreateUser(id string, input *model.CreateUserInput) (*model.User, 
 	return data, nil
 }
 
-func (db *DB) CreateTodo(id, userId string, input *model.CreateTodoInput) (*model.Todo, error) {
+func (db *DB) CreateTodo(userId string, input *model.CreateTodoInput) (*model.Todo, error) {
 	collection := db.client.Database("MyTodoService").Collection("todos")
 	data := &model.Todo{
-		ID:        id,
 		Text:      input.Text,
 		Completed: false,
 		UserID:    userId,
@@ -77,8 +76,12 @@ func (db *DB) CreateTodo(id, userId string, input *model.CreateTodoInput) (*mode
 
 func (db *DB) GetUser(id string) (*model.User, error) {
 	var data *model.User
+	_id, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatal("Invalid ID", err)
+	}
 	collection := db.client.Database("MyTodoService").Collection("user")
-	_ = collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&data)
+	_ = collection.FindOne(context.Background(), bson.M{"_id": _id}).Decode(&data)
 	if data == nil {
 		return nil, fmt.Errorf("User not present")
 	}
@@ -92,7 +95,7 @@ func (db *DB) GetUserTodos(userId string) ([]*model.Todo, error) {
 	collection := db.client.Database("MyTodoService").Collection("todos")
 	cursor, err := collection.Find(ctx, bson.M{"userId": userId})
 	if err != nil {
-
+		log.Fatal("Cannot find any entry ", err)
 	}
 	for cursor.Next(ctx) {
 		var todo *model.Todo
@@ -104,20 +107,32 @@ func (db *DB) GetUserTodos(userId string) ([]*model.Todo, error) {
 	return todos, nil
 }
 
-func (db *DB) GetTodo(id string) (*model.Todo, error) {
-	var todo *model.Todo
+func (db *DB) GetTodo() ([]*model.Todo, error) {
+	var todos []*model.Todo
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	collection := db.client.Database("MyTodoService").Collection("todos")
-	_ = collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&todo)
-	if todo == nil {
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
 		log.Fatal("No todo found with specified ID")
 	}
-	return todo, nil
+	for cursor.Next(ctx) {
+		var todo *model.Todo
+		if err := cursor.Decode(&todo); err != nil {
+			log.Fatal(err)
+		}
+		todos = append(todos, todo)
+	}
+	return todos, nil
 }
 
 func (db *DB) UpdateTodo(id, userId string, input *model.UpdateTodoInput) (*model.Todo, error) {
 	var todo *model.Todo
 	collection := db.client.Database("MyTodoService").Collection("todos")
-
+	_id, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatal("Invalid ID", err)
+	}
 	updateFields := bson.M{}
 	if input.Text != nil {
 		updateFields["text"] = input.Text
@@ -128,8 +143,8 @@ func (db *DB) UpdateTodo(id, userId string, input *model.UpdateTodoInput) (*mode
 	update := bson.M{
 		"$set": updateFields,
 	}
-	filter := bson.M{"_id": id, "userId": userId}
-	_, err := collection.UpdateOne(context.Background(), filter, update)
+	filter := bson.M{"_id": _id, "userId": userId}
+	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Fatal("Failed updating todo", err)
 	}
@@ -142,12 +157,16 @@ func (db *DB) UpdateTodo(id, userId string, input *model.UpdateTodoInput) (*mode
 
 func (db *DB) DeleteTodo(id string) (*model.Todo, error) {
 	var todo *model.Todo
+	_id, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatal("Invalid ID", err)
+	}
 	collection := db.client.Database("MyTodoService").Collection("todos")
-	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&todo)
+	err = collection.FindOne(context.Background(), bson.M{"_id": _id}).Decode(&todo)
 	if err != nil {
 		return nil, fmt.Errorf("No Todo Item present with that id %v", err)
 	}
-	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": id})
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": _id})
 	if err != nil {
 		return nil, fmt.Errorf("Delete operation failed %v", err)
 	}

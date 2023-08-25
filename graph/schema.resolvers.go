@@ -12,13 +12,13 @@ import (
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, id string, input *model.CreateUserInput) (*model.User, error) {
-	return db.CreateUser(id, input)
+func (r *mutationResolver) CreateUser(ctx context.Context, input *model.CreateUserInput) (*model.User, error) {
+	return db.CreateUser(input)
 }
 
 // CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, id string, userID string, input *model.CreateTodoInput) (*model.Todo, error) {
-	return db.CreateTodo(id, userID, input)
+func (r *mutationResolver) CreateTodo(ctx context.Context, userID string, input *model.CreateTodoInput) (*model.Todo, error) {
+	return db.CreateTodo(userID, input)
 }
 
 // UpdateTodo is the resolver for the updateTodo field.
@@ -37,8 +37,8 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, er
 }
 
 // GetTodo is the resolver for the getTodo field.
-func (r *queryResolver) GetTodo(ctx context.Context, id string) (*model.Todo, error) {
-	return db.GetTodo(id)
+func (r *queryResolver) GetTodo(ctx context.Context) ([]*model.Todo, error) {
+	return db.GetTodo()
 }
 
 // GetUserTodos is the resolver for the getUserTodos field.

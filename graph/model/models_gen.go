@@ -3,28 +3,26 @@
 package model
 
 type Todo struct {
-	ID        string `bson:"_id"`
-	Text      string `bson:"text"`
-	Completed bool   `bson:"completed"`
-	UserID    string `bson:"userId"`
+	Text      string `json:"text"`
+	Completed bool   `json:"completed"`
+	UserID    string `json:"userId"`
 }
 
 type User struct {
-	ID       string `bson:"_id"`
-	Username string `bson:"username"`
-	Email    string `bson:"email"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type CreateTodoInput struct {
-	Text string `bson:"text"`
+	Text string `json:"text"`
 }
 
 type CreateUserInput struct {
-	Username string `bson:"username"`
-	Email    string `bson:"email"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type UpdateTodoInput struct {
-	Text      *string `bson:"text,omitempty"`
-	Completed *bool   `bson:"completed,omitempty"`
+	Text      *string `json:"text,omitempty"`
+	Completed *bool   `json:"completed,omitempty"`
 }
