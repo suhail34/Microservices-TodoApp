@@ -29,6 +29,7 @@ jobs:
         run: |
           run: |
             echo "${{secrets.PASSWORD}}" | docker login -u "suhail12" --password-stdin
+            cd todo-service
             docker image build -t suhail12/graphql-todo-service:stable-latest .
             docker tag suhail12/graphql-todo-service:stable-latest suhail12/graphql-todo-service:stable-${GITHUB_REF/refs\/tags\//}
             docker tag suhail12/graphql-todo-service:stable-latest suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}
