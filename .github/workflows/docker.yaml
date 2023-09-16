@@ -1,0 +1,38 @@
+name: Docker image CI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-auth-service:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build and push Auth Svc
+        run: |
+          echo "${{secrets.PASSWORD}}" | docker login -u "suhail12" --password-stdin
+          cd auth-service
+          docker image build -t suhail12/auth-service:stable-latest .
+          docker tag suhail12/auth-service:stable-latest suhail12/auth-service:stable-${GITHUB_REF/refs\/tags\//}
+          docker tag suhail12/auth-service:stable-latest suhail12/auth-service:stable-${GITHUB_SHA::8}
+          docker push suhail12/auth-service:stable-latest
+          docker push suhail12/auth-service:stable-${GITHUB_REF/refs\/tags\//}
+          docker push suhail12/auth-service:stable-${GITHUB_SHA::8}
+
+  build-graphql-todo-service:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build and push graphql todo Svc
+        run: |
+          run: |
+            echo "${{secrets.PASSWORD}}" | docker login -u "suhail12" --password-stdin
+            docker image build -t suhail12/graphql-todo-service:stable-latest .
+            docker tag suhail12/graphql-todo-service:stable-latest suhail12/graphql-todo-service:stable-${GITHUB_REF/refs\/tags\//}
+            docker tag suhail12/graphql-todo-service:stable-latest suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}
+            docker push suhail12/graphql-todo-service:stable-latest
+            docker push suhail12/graphql-todo-service:stable-${GITHUB_REF/refs\/tags\//}
+            docker push suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}Svc
+
