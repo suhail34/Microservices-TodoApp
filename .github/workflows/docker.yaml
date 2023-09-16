@@ -35,5 +35,5 @@ jobs:
             docker tag suhail12/graphql-todo-service:stable-latest suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}
             docker push suhail12/graphql-todo-service:stable-latest
             docker push suhail12/graphql-todo-service:stable-${GITHUB_REF/refs\/tags\//}
-            docker push suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}Svc
+            docker push suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}
 
