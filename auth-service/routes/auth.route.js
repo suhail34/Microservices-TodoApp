@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { logOut, signin_post, signup_post} = require('../controllers/auth.controllers')
+const { logOut, signin_post, signup_post} = require('../controllers/auth.controller')
 const verifyToken = require('../middlewares/authJWT')
 
 router.route('/api/auth/signup').post(signup_post)

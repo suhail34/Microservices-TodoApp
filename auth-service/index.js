@@ -3,7 +3,6 @@ const db = require('./db/conn')
 const bodyParser = require('body-parser')
 const formData = require('express-form-data')
 const app = express()
-const notes = require("./routes/notes.routes")
 const auth = require("./routes/auth.route")
 const cookieParser = require('cookie-parser')
 const port = process.env.PORT
@@ -15,7 +14,6 @@ app.use(formData.parse())
 app.use(cookieParser())
 
 app.use('/',auth)
-app.use('/',notes)
 
 const start = async () => {
     try {

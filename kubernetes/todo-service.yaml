@@ -1,0 +1,16 @@
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-service
+  namespace: myapplication
+spec:
+  selector:
+    app: todo-service
+  ports:
+  - name: todo-service
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+

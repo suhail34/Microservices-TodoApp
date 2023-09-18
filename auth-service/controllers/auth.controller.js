@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.models');
+const User = require('../models/user.model');
 const cookie = require('cookie-parser');
 
 const handleErrors = (err) => {
