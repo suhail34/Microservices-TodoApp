@@ -1,0 +1,37 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq # has to match .spec.template.metadata.labels
+  serviceName: "not-applicable"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: rabbitmq # has to match .spec.selector.matchLabels
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3-management
+        ports:
+        - containerPort: 15672
+          name: http
+          protocol: TCP
+        - name: amqp
+          protocol: TCP
+          containerPort: 5672
+        volumeMounts:
+        - name: rabbitmq-vol
+          mountPath: "/var/lib/rabbitmq"
+
+      volumes:
+        - name: rabbitmq-vol
+          persistentVolumeClaim:
+            claimName: rabbitmq-pvc
+---
+

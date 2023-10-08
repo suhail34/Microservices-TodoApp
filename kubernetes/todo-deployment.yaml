@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name:  todo-service
-  namespace: myapplication
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -14,8 +14,20 @@ spec:
       labels:
         app: todo-service
     spec:
+      volumes:
+        - name: ca-certs
+          configMap:
+            name: custom-ca-certs
       containers:
         - name: todo-service
-          image: suhail12/graphql-todo-service:stable-latest
+          image: suhail12/todo-service:stable-latest
+          env:
+            - name: USER
+              value: c2tuYQ==
+            - name: PASS
+              value: YWRtaW4=
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: ca-certs
+              mountPath: /etc/ssl/certs

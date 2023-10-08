@@ -2,12 +2,13 @@ package database
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/suhail34/goGraphql-Todo/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,21 +22,23 @@ type DB struct {
 }
 
 func Connect() *DB {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	var connectionString string = os.Getenv("MONGO_URI")
+	var userNamebase64 string = os.Getenv("USER")
+  var passbase64 string = os.Getenv("PASS")
+  userNameByte, _ := base64.StdEncoding.DecodeString(userNamebase64)
+  passByte, _ := base64.StdEncoding.DecodeString(passbase64)
+  username := string(userNameByte)
+  pass := string(passByte)
+  connectionString := fmt.Sprintf("mongodb+srv://%v:%v@notes.hpcfkkd.mongodb.net/?retryWrites=true&w=majority", username, pass)
 	clientOptions := options.Client().ApplyURI(connectionString)
 
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err, " can't connect to mongodb altas")
 	}
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err, " error pinging mongodb Atlas")
 	}
 	fmt.Println("MongoDB Atlas Connected")
 	return &DB{
@@ -45,6 +48,7 @@ func Connect() *DB {
 
 func (db *DB) CreateUser(input *model.CreateUserInput) (*model.User, error) {
 	collection := db.client.Database("MyTodoService").Collection("user")
+
 	var data = &model.User{
 		Username: input.Username,
 		Email:    input.Email,
@@ -55,17 +59,53 @@ func (db *DB) CreateUser(input *model.CreateUserInput) (*model.User, error) {
 		return nil, err
 	}
 
-	return data, nil
+ 	return data, nil
 }
 
-func (db *DB) CreateTodo(userId string, input *model.CreateTodoInput) (*model.Todo, error) {
+func (db *DB) CreateTodo(ctx context.Context, userId string, input *model.CreateTodoInput) (*model.Todo, error) {
 	collection := db.client.Database("MyTodoService").Collection("todos")
 	data := &model.Todo{
 		Text:      input.Text,
 		Completed: false,
 		UserID:    userId,
 	}
-	_, err := collection.InsertOne(context.Background(), data)
+  rabbitmqContext := ctx.Value("rabbitMQConnection").(*amqp.Connection)
+  ch, err := rabbitmqContext.Channel()
+
+  if err != nil {
+    log.Fatalf("Failed creating channel %v", err)
+  }
+  defer ch.Close()
+  
+  _, err = ch.QueueDeclare(
+    "todo",
+    true,
+    false,
+    false,
+    false,
+    nil,
+  )
+
+  if err != nil {
+    log.Fatalf("Failed declaring queue %v", err)
+  }
+
+  err = ch.PublishWithContext(
+    context.Background(),
+    "",
+    "todo",
+    false,
+    false,
+    amqp.Publishing{
+      ContentType: "text/plain",
+      Body: []byte("my todo"),
+    },
+  )
+
+  if err != nil {
+    log.Fatalf("Failed to publish the message %v", err)
+  }
+	_, err = collection.InsertOne(context.Background(), data)
 	if err != nil {
 		log.Fatal("Todo wasn't Create")
 		return nil, fmt.Errorf("Todo Wasn't Created %v", err)

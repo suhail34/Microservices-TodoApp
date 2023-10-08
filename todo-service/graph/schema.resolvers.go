@@ -18,7 +18,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input *model.CreateUs
 
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, userID string, input *model.CreateTodoInput) (*model.Todo, error) {
-	return db.CreateTodo(userID, input)
+	return db.CreateTodo(ctx, userID, input)
 }
 
 // UpdateTodo is the resolver for the updateTodo field.
