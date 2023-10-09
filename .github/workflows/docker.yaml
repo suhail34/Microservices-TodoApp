@@ -37,3 +37,18 @@ jobs:
             docker push suhail12/graphql-todo-service:stable-${GITHUB_REF/refs\/tags\//}
             docker push suhail12/graphql-todo-service:stable-${GITHUB_SHA::8}
 
+  build-consumer-service:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build and push consumer Service
+        run: |
+          run: |
+            echo "${{secrets.PASSWORD}}" | docker login -u "suhail12" --password-stdin
+            cd consumer
+            docker image build -t suhail12/consumer-service:stable-latest .
+            docker tag suhail12/consumer-service:stable-latest suhail12/consumer-service:stable-${GITHUB_REF/refs\/tags\//}
+            docker tag suhail12/consumer-service:stable-latest suhail12/consumer-service:stable-${GITHUB_SHA::8}
+            docker push suhail12/consumer-service:stable-latest
+            docker push suhail12/consumer-service:stable-${GITHUB_REF/refs\/tags\//}
+            docker push suhail12/consumer-service:stable-${GITHUB_SHA::8}

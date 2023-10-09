@@ -1,0 +1,21 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  consumer-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-service
+  template:
+    metadata:
+      labels:
+        app: consumer-service
+    spec:
+        containers:
+        - name: consumer-service
+          image: suhail12/consumer-service:stable-latest
+          ports:
+            - containerPort: 8000
