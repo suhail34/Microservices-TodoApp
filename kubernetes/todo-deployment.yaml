@@ -20,7 +20,7 @@ spec:
             name: custom-ca-certs
       containers:
         - name: todo-service
-          image: suhail12/todo-service:stable-latest
+          image: suhail12/graphql-todo-service:stable-latest
           env:
             - name: USER
               value: c2tuYQ==
