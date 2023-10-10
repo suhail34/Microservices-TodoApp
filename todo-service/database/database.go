@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -90,6 +91,11 @@ func (db *DB) CreateTodo(ctx context.Context, userId string, input *model.Create
     log.Fatalf("Failed declaring queue %v", err)
   }
 
+  jsonData, err := json.Marshal(data)
+  if err!=nil {
+    log.Fatalf("Failed to serialize JSON Data : %v", err)
+  }
+
   err = ch.PublishWithContext(
     context.Background(),
     "",
@@ -97,8 +103,8 @@ func (db *DB) CreateTodo(ctx context.Context, userId string, input *model.Create
     false,
     false,
     amqp.Publishing{
-      ContentType: "text/plain",
-      Body: []byte("my todo"),
+      ContentType: "application/json",
+      Body: jsonData,
     },
   )
 

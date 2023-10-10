@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -49,7 +50,13 @@ func main() {
 
   go func() {
     for msg := range msgs {
-      log.Printf("Recieved a message : %v\n", msg.Body)
+      var data map[string]interface{}
+      err = json.Unmarshal(msg.Body, &data)
+      if err!=nil {
+        log.Printf("Failed to deserialize JSON Data: %v", err)
+        continue
+      }
+      log.Printf("Recieved a message : %v\n", data)
     }
   }()
 
