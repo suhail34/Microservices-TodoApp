@@ -57,6 +57,7 @@ func main() {
         continue
       }
       log.Printf("Recieved a message : %v\n", data)
+      //if data["duration"]
       if err := msg.Ack(false) ;err!=nil {
         log.Fatalf("Acknowledgement failed: %v", err)
       }

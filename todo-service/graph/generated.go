@@ -24,6 +24,7 @@ import (
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 	return &executableSchema{
+		schema:     cfg.Schema,
 		resolvers:  cfg.Resolvers,
 		directives: cfg.Directives,
 		complexity: cfg.Complexity,
@@ -31,6 +32,7 @@ func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 }
 
 type Config struct {
+	Schema     *ast.Schema
 	Resolvers  ResolverRoot
 	Directives DirectiveRoot
 	Complexity ComplexityRoot
@@ -60,6 +62,8 @@ type ComplexityRoot struct {
 
 	Todo struct {
 		Completed func(childComplexity int) int
+		EndTime   func(childComplexity int) int
+		StartTime func(childComplexity int) int
 		Text      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
@@ -83,12 +87,16 @@ type QueryResolver interface {
 }
 
 type executableSchema struct {
+	schema     *ast.Schema
 	resolvers  ResolverRoot
 	directives DirectiveRoot
 	complexity ComplexityRoot
 }
 
 func (e *executableSchema) Schema() *ast.Schema {
+	if e.schema != nil {
+		return e.schema
+	}
 	return parsedSchema
 }
 
@@ -182,6 +190,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.Completed(childComplexity), true
+
+	case "Todo.endTime":
+		if e.complexity.Todo.EndTime == nil {
+			break
+		}
+
+		return e.complexity.Todo.EndTime(childComplexity), true
+
+	case "Todo.startTime":
+		if e.complexity.Todo.StartTime == nil {
+			break
+		}
+
+		return e.complexity.Todo.StartTime(childComplexity), true
 
 	case "Todo.text":
 		if e.complexity.Todo.Text == nil {
@@ -308,14 +330,14 @@ func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapSchema(parsedSchema), nil
+	return introspection.WrapSchema(ec.Schema()), nil
 }
 
 func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
+	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 //go:embed "schema.graphqls"
@@ -606,6 +628,10 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "completed":
 				return ec.fieldContext_Todo_completed(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Todo_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_Todo_endTime(ctx, field)
 			case "userId":
 				return ec.fieldContext_Todo_userId(ctx, field)
 			}
@@ -666,6 +692,10 @@ func (ec *executionContext) fieldContext_Mutation_updateTodo(ctx context.Context
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "completed":
 				return ec.fieldContext_Todo_completed(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Todo_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_Todo_endTime(ctx, field)
 			case "userId":
 				return ec.fieldContext_Todo_userId(ctx, field)
 			}
@@ -726,6 +756,10 @@ func (ec *executionContext) fieldContext_Mutation_deleteTodo(ctx context.Context
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "completed":
 				return ec.fieldContext_Todo_completed(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Todo_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_Todo_endTime(ctx, field)
 			case "userId":
 				return ec.fieldContext_Todo_userId(ctx, field)
 			}
@@ -847,6 +881,10 @@ func (ec *executionContext) fieldContext_Query_getTodo(ctx context.Context, fiel
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "completed":
 				return ec.fieldContext_Todo_completed(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Todo_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_Todo_endTime(ctx, field)
 			case "userId":
 				return ec.fieldContext_Todo_userId(ctx, field)
 			}
@@ -899,6 +937,10 @@ func (ec *executionContext) fieldContext_Query_getUserTodos(ctx context.Context,
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "completed":
 				return ec.fieldContext_Todo_completed(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Todo_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_Todo_endTime(ctx, field)
 			case "userId":
 				return ec.fieldContext_Todo_userId(ctx, field)
 			}
@@ -1131,6 +1173,94 @@ func (ec *executionContext) fieldContext_Todo_completed(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_startTime(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_startTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_startTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_endTime(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_endTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_endTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3048,7 +3178,7 @@ func (ec *executionContext) unmarshalInputcreateTodoInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"text"}
+	fieldsInOrder := [...]string{"text", "startTime", "endTime"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3064,6 +3194,24 @@ func (ec *executionContext) unmarshalInputcreateTodoInput(ctx context.Context, o
 				return it, err
 			}
 			it.Text = data
+		case "startTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartTime = data
+		case "endTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndTime = data
 		}
 	}
 
@@ -3343,6 +3491,16 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "completed":
 			out.Values[i] = ec._Todo_completed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "startTime":
+			out.Values[i] = ec._Todo_startTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endTime":
+			out.Values[i] = ec._Todo_endTime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

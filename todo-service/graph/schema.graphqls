@@ -10,6 +10,8 @@ type User {
 type Todo {
   text: String!
   completed: Boolean!
+  startTime: String!
+  endTime: String!
   userId: ID!
 }
 
@@ -43,4 +45,6 @@ input createUserInput {
 
 input createTodoInput {
   text: String!
+  startTime: String!
+  endTime: String!
 }

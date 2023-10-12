@@ -5,6 +5,8 @@ package model
 type Todo struct {
 	Text      string `json:"text"`
 	Completed bool   `json:"completed"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
 	UserID    string `json:"userId"`
 }
 
@@ -14,7 +16,9 @@ type User struct {
 }
 
 type CreateTodoInput struct {
-	Text string `json:"text"`
+	Text      string `json:"text"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
 }
 
 type CreateUserInput struct {
