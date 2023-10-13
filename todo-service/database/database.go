@@ -69,6 +69,8 @@ func (db *DB) CreateTodo(ctx context.Context, userId string, input *model.Create
 		Text:      input.Text,
 		Completed: false,
 		UserID:    userId,
+    StartTime: input.StartTime,
+    EndTime: input.EndTime,
 	}
   rabbitmqContext := ctx.Value("rabbitMQConnection").(*amqp.Connection)
   ch, err := rabbitmqContext.Channel()

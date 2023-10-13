@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -57,9 +58,21 @@ func main() {
         continue
       }
       log.Printf("Recieved a message : %v\n", data)
-      //if data["duration"]
-      if err := msg.Ack(false) ;err!=nil {
-        log.Fatalf("Acknowledgement failed: %v", err)
+      endTime, err := time.Parse("3:04 pm", data["endTime"].(string ))
+      if err != nil {
+        log.Fatalf("Error parsing endTime: %v", err)
+      }
+      durationRemaining := endTime.Sub(time.Now())
+      if durationRemaining <= 0 {
+        log.Printf("Time Duration Reached")
+        if err := msg.Ack(false); err!=nil {
+          log.Fatalf("Acknowledgement failed: %v", err)
+        }
+      }else {
+        log.Printf("Time Duration Remaining")
+        if err:=msg.Nack(false, true); err!=nil {
+          log.Fatalf("Negative Acknowledgement failed:%v", err)
+        }
       }
     }
   }()
