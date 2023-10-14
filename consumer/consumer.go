@@ -62,14 +62,15 @@ func main() {
       if err != nil {
         log.Fatalf("Error parsing endTime: %v", err)
       }
-      durationRemaining := endTime.Sub(time.Now())
-      if durationRemaining <= 0 {
-        log.Printf("Time Duration Reached")
+      currentTime := time.Now()
+      fmt.Println(currentTime.After(endTime))
+      if currentTime.After(endTime) {
+        log.Printf("Time Duration Reached : %v", currentTime)
         if err := msg.Ack(false); err!=nil {
           log.Fatalf("Acknowledgement failed: %v", err)
         }
       }else {
-        log.Printf("Time Duration Remaining")
+        log.Printf("Time Duration Remaining : %v", currentTime)
         if err:=msg.Nack(false, true); err!=nil {
           log.Fatalf("Negative Acknowledgement failed:%v", err)
         }
