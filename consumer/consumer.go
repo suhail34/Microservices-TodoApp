@@ -64,7 +64,7 @@ func main() {
       }
       currentTime := time.Now()
       fmt.Println(currentTime.After(endTime))
-      if currentTime.After(endTime) {
+      if !currentTime.After(endTime) {
         log.Printf("Time Duration Reached : %v", currentTime)
         if err := msg.Ack(false); err!=nil {
           log.Fatalf("Acknowledgement failed: %v", err)
