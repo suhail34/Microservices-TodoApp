@@ -1,17 +1,15 @@
 const express = require('express')
 const db = require('./db/conn')
 const bodyParser = require('body-parser')
-const formData = require('express-form-data')
 const app = express()
 const auth = require("./routes/auth.route")
 const cookieParser = require('cookie-parser')
 const port = process.env.PORT
 
+app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(bodyParser.json());
-app.use(formData.parse())
-app.use(cookieParser())
 
 app.use('/',auth)
 

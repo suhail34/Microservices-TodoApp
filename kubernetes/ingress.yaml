@@ -2,20 +2,58 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rabbitmq-ingress
+  name: gateway-ingress
   namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-set-header: "Authorization $http_authorization"
 spec:
   ingressClassName: "nginx"
   rules:
-  - host: rabbitmq-manager.com
+  - host: my-microservice.com
     http:
       paths:
       - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: todo-service
+            port:
+              number: 30004
+  - host: my-microservice.com
+    http:
+      paths:
+      - path: /rabbitmq
         pathType: Prefix        
         backend:
           service:
             name: rabbitmq-service
             port:
               number: 15672
+  - host: my-microservice.com
+    http:
+      paths:
+      - path: /api/auth/signup
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 30005
+      - path: /api/auth/signin
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 30005
+      - path: /api/auth/logout
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 30005
 ---
 

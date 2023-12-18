@@ -63,12 +63,13 @@ const signup_post = async (req, res) => {
  */
 const signin_post = async (req, res) => {
   const {email, password} = req.body;
-  console.log(email,password)
    try {
     const user = await User.login(email,password)
+    console.log(user)
     const token = createToken(user._id)
+    console.log(token)
     res.cookie('jwt',token,{expiresIn:1000*maxAge,httpOnly:true})
-    res.status(200).json({user:user._id})
+    res.status(200).json({user:user._id, headers: token})
    } catch (err){
     const errors = handleErrors(err)
     res.status(400).json({error:errors})

@@ -1,0 +1,29 @@
+{
+  "query": "query {getTodo {userId, text, completed}}"
+}
+//{
+//  "query":"mutation CreateTodo($userId:ID!, $input:createTodoInput) {createTodo(userId:$userId, input:$input) {userId, text, completed}}", 
+//  "variables": {
+//    "userId": "64e8ec9a31888ae5056ffd99", 
+//    "input":{
+//      "text":"user2 ka todo 1", 
+//      "startTime":"11:00 am", 
+//      "endTime":"11:15 am"
+//    }
+//  }
+//}
+// mutation CreateUser($input: createUserInput!) {
+//   createUser(input: $input) {
+//     username
+//     email
+//   }
+// }
+//
+// query {
+//   getUserTodos(userId:"64e8eca531888ae5056ffd9a"){
+//     userId
+//     text
+//     completed
+//   }
+// }
+//

@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name:  auth-service
-  namespace: myapplication
+  namespace: default
 spec:
   replicas: 1
   selector:
